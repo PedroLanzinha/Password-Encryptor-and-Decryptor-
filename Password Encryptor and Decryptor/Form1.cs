@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -16,5 +18,95 @@ namespace Password_Encryptor_and_Decryptor
         {
             InitializeComponent();
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        //public string DecryptString(string encrString)
+        //{
+        //    byte[] b;
+        //    string decrypted;
+
+        //    try
+        //    {
+        //        b = Convert.FromBase64String(encrString);
+        //        decrypted = System.Text.ASCIIEncoding.ASCII.GetString(b);
+        //    }
+        //    catch (FormatException qw)
+        //    {
+        //        decrypted = "";
+        //    }
+        //    return decrypted;
+        //}
+
+        //public string EncryptString(string strEncrypted)
+        //{
+        //    byte[] b = System.Text.ASCIIEncoding.ASCII.GetBytes(strEncrypted);
+        //    string encrypted = Convert.ToBase64String(b);
+        //    return encrypted;
+        //}
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            label2.Text = /*EncryptString*/encrypt(textBox1.Text);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            label2.Text = /*DecryptString*/Decrypt(label2.Text);
+        }
+
+        
+    public string encrypt(string encryptString)   
+    {  
+        string EncryptionKey = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";  
+        byte[] clearBytes = Encoding.Unicode.GetBytes(encryptString);  
+        using(Aes encryptor = Aes.Create())   
+        {  
+            Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] {  
+                0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76  
+            });  
+            encryptor.Key = pdb.GetBytes(32);  
+            encryptor.IV = pdb.GetBytes(16);  
+            using(MemoryStream ms = new MemoryStream())  
+            {  
+                using(CryptoStream cs = new CryptoStream(ms, encryptor.CreateEncryptor(), CryptoStreamMode.Write)) {  
+                    cs.Write(clearBytes, 0, clearBytes.Length);  
+                    cs.Close();  
+                }  
+                encryptString = Convert.ToBase64String(ms.ToArray());  
+            }  
+        }  
+        return encryptString;  
+    }  
+      
+    public string Decrypt(string cipherText)   
+    {  
+        string EncryptionKey = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";  
+        cipherText = cipherText.Replace(" ", "+");  
+        byte[] cipherBytes = Convert.FromBase64String(cipherText);  
+        using(Aes encryptor = Aes.Create())   
+        {  
+            Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] {  
+                0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76  
+            });  
+            encryptor.Key = pdb.GetBytes(32);  
+            encryptor.IV = pdb.GetBytes(16);  
+            using(MemoryStream ms = new MemoryStream())   
+            {  
+                using(CryptoStream cs = new CryptoStream(ms, encryptor.CreateDecryptor(), CryptoStreamMode.Write)) {  
+                    cs.Write(cipherBytes, 0, cipherBytes.Length);  
+                    cs.Close();  
+                }  
+                cipherText = Encoding.Unicode.GetString(ms.ToArray());  
+            }  
+        }  
+        return cipherText;  
+    }  
+
+
+
     }
 }
